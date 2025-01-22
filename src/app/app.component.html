@@ -6,11 +6,13 @@
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      <ion-list>
-        <ion-item *ngFor="let route of routes" [routerLink]="route.path">
-          <ion-label>{{ route.path | titlecase }}</ion-label>
-        </ion-item>
-      </ion-list>
+      <ion-menu-toggle>
+        <ion-list>
+          <ion-item *ngFor="let route of routes" [routerLink]="route.path">
+            <ion-label>{{ route.path | titlecase }}</ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-menu-toggle>
     </ion-content>
   </ion-menu>
   <ion-router-outlet id="main-content"></ion-router-outlet>
