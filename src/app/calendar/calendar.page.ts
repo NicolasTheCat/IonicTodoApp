@@ -17,7 +17,6 @@ export class CalendarPage implements OnInit {
   constructor(private taskService: TaskService) { }
 
   ngOnInit(): void {
-    //Subscribe to task observable from service
     this.taskService.getTasks().subscribe(tasks => {
       this.tasks = tasks;
     })
@@ -27,6 +26,7 @@ export class CalendarPage implements OnInit {
     return this.tasks.map(e =>
     ({
       date: e.date?.split('T')[0],
+      //TODO : Rajouter la coloration des tâches via app locale + gérer les cas multiple tâches sur date
       textColor: e._textColor ?? "#09721b",
       backgroundColor: e._bgColor ?? "#c8e5d0"
     }));

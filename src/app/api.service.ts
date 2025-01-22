@@ -2,15 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
-/**
- * 
- */
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
 
-  private _baseUrl = 'http://86.48.2.12:3000';
+  private _baseUrl = 'http://86.48.2.12:3000'; //IP de mon vps, merci de pas le surmener :c
 
   constructor(private http: HttpClient) { }
 

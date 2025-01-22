@@ -22,6 +22,12 @@ export class UserService implements OnInit {
     this.setupNotifications()
   }
 
+  /**
+   * Configure les notifications push pour l'utilisateur.
+   * Vérifie si l'utilisateur est authentifié, s'il est bien sur android ou ios, 
+   * et gère les autorisations et l'abonnement aux notifications.
+   * ATTENTION : Notification uniquement fonctionnelles sur Android
+   */
   async setupNotifications() {
     console.log(this.authService.getToken());
     if (!this.authService.getToken()) {
@@ -33,6 +39,7 @@ export class UserService implements OnInit {
       return;
     }
 
+    //Checks nécessaire pour android >= API 33
     let hasPerms = await PushNotifications.checkPermissions();
     if (!hasPerms) {
       let request = await PushNotifications.requestPermissions();
@@ -50,6 +57,11 @@ export class UserService implements OnInit {
     );
   }
 
+  /**
+   * Souscrit aux notifications push.
+   * Lance l'enregistrement de l'appareil auprès de Firebase, puis s'abonne au topic correspondant a l'uuid de l'utilisateur connecté.
+   * TODO : RAJOUTER UNE FONCTION FAISANT UNE DESINCRIPTION DES TOPICS EN CAS DE DECONNEXION DE L'UTILISATEUR.
+   */
   subscribeToNotifications() {
     PushNotifications.register();
 
@@ -60,11 +72,18 @@ export class UserService implements OnInit {
       console.log(e.token);
     })
 
+    //L'application s'abonne au topic correspondant au uuid de l'utilisateur connecté.
+    //Le serveur détermine ensuite a quel topic envoyer les notifications.
     this.authService.getUser().subscribe(e => {
       if (e) FCM.subscribeTo({ topic: e.uuid });
     })
   }
 
+  /**
+   * Récupère la liste des amis de l'utilisateur connecté (l'utilisateur est inclu).
+   * @returns Un Observable contenant un tableau d'utilisateur (L'utilisateur est inclu).
+   * Si l'utilisateur n'est pas authentifié, retourne une liste vide.
+   */
   getFriends(): Observable<User[]> {
     if (!this.authService.getToken() || !this.authService.getUserValue()) {
       return from([]);

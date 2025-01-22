@@ -19,6 +19,13 @@ export class TaskService {
     private apiService: ApiService
   ) { }
 
+  /**
+   * Crée une nouvelle tâche.
+   * 
+   * La tâche sera premièrement stockée dans le local storage puis envoyée à l'api une fois une connexion établie.
+   * @param taskCreateDTO - Les données nécessaires à la création de la tâche.
+   * @returns Un Observable contenant la tâche créée.
+   */
   createTask(taskCreateDTO: TaskCreateDTO): Observable<Task> {
     const newTask: Task = {
       uuid: uuidv4(),
@@ -35,6 +42,12 @@ export class TaskService {
     );
   }
 
+  /**
+   * Récupère toutes les tâches, premièrement par le local storage, puis par l'API si le local storage est vide.
+   * 
+   * TODO : permettre la récupération de tâches créées dans d'autres contextes d'applications (synchro app/browser).
+   * @returns Un Observable contenant la liste des tâches.
+   */
   getTasks(): Observable<Task[]> {
     return from(this.storageService.get<Task[]>('TASKS')).pipe(
       switchMap((tasks) => {
@@ -53,6 +66,11 @@ export class TaskService {
     );
   }
 
+  /**
+   * Récupère une tâche par son UUID.
+   * @param uuid - L'identifiant unique de la tâche.
+   * @returns Un Observable contenant la tâche ou `undefined` si elle n'existe pas.
+   */
   getTaskById(uuid: string): Observable<Task | undefined> {
     return this.getTasks().pipe(
       map((tasks) => tasks.find((e) => e.uuid === uuid) || undefined),
@@ -76,6 +94,13 @@ export class TaskService {
     );
   }
 
+  /**
+   * Met à jour une tâche existante.
+   * 
+   * La tâche sera premièrement mise à jour dans le local storage puis envoyée à l'api une fois une connexion établie.
+   * @param taskUpdateDTO - Les données à mettre à jour pour la tâche.
+   * @returns Un Observable contenant la tâche mise à jour.
+   */
   updateTask(taskUpdateDTO: TaskUpdateDTO): Observable<Task> {
     return this.getTasks().pipe(
       map((tasks) => {
@@ -96,6 +121,13 @@ export class TaskService {
     );
   }
 
+  /**
+   * Supprime une tâche selon son UUID.
+   * 
+   * La tâche sera premièrement supprimée dans le local storage puis envoyée à l'api une fois une connexion établie.
+   * @param uuid - L'identifiant unique de la tâche.
+   * @returns Un Observable contenant la tâche supprimée.
+   */
   deleteTask(uuid: string): Observable<Task> {
     return this.getTasks().pipe(
       map((tasks) => {
@@ -117,6 +149,11 @@ export class TaskService {
     );
   }
 
+  /**
+   * Tente de synchroniser les tâches selon la liste présente dans `_syncQueue`.
+   * 
+   * Tant qu'une connexion n'est pas disponible, après avoir appellé cette fonction, elle sera lancée toutes les 10 secondes jusqu'à la récupération d'une connexion.
+   */
   private attemptToSync() {
     if (navigator.onLine) {
       if (this._syncTimerRef) {

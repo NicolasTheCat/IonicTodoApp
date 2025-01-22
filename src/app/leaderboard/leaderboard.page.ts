@@ -18,6 +18,8 @@ export class LeaderboardPage implements ViewDidEnter {
   sort: FriendSort = FriendSort.SCORE;
   _sortEnum = FriendSort;
 
+  //Utilisation de ionViewDidEnter car NgOnInit se lance uniquement une fois en application téléphone.
+  //TODO : Changer cette pseudo redirection en une interception avant redirection (autre scope)
   ionViewDidEnter() {
     if (this.authService.getToken() == null) {
       this.router.navigate(['login'])

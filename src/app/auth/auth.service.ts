@@ -43,6 +43,8 @@ export class AuthService {
 
   /**
    * Méthode pour créer un nouveau compte utilisateur.
+   * 
+   * TODO: gérer le cas où un nom d'utilisateur existe déja en amont.
    * @param username Le nom d'utilisateur
    * @param password Le mot de passe
    * @returns Un Observable renvoyant la réponse du serveur
