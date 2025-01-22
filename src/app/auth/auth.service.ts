@@ -13,27 +13,14 @@ export class AuthService {
 
   constructor(private http: HttpClient) { }
 
+  /**
+   * Méthode pour se connecter avec un nom d'utilisateur et un mot de passe.
+   * Envoie une requête POST au backend pour obtenir un jeton JWT.
+   * @param username Le nom d'utilisateur
+   * @param password Le mot de passe
+   * @returns Un Observable contenant le jeton JWT
+   */
   login(username: string, password: string): Observable<string> {
-
-    return from(Promise.resolve("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUEiLCJuYW1lIjoiTmljb2xhc1RoZUNhdCJ9.MR6HR-3Lne8K28oZ1zGZgqoyDtcIFl_3kvFI-E9dnQw"))
-      .pipe(
-        map(response => {
-          this.currentToken$.next(response);
-          this.currentUser$.next(jwtDecode(response));
-          return response;
-        })
-      )
-      .pipe(
-        catchError((err: HttpErrorResponse) => {
-          switch (err.status) {
-            case 403:
-              return throwError(() => new Error("Mauvais nom d'utilisateur/mot de passe"))
-
-            default:
-              return throwError(() => new Error("Une erreur inconnue est survenue, code : " + err.status))
-          }
-        })
-      )
     return this.http.post<string>('/api/login', { username, password })
       .pipe(
         map(response => {
@@ -54,18 +41,13 @@ export class AuthService {
       )
   }
 
+  /**
+   * Méthode pour créer un nouveau compte utilisateur.
+   * @param username Le nom d'utilisateur
+   * @param password Le mot de passe
+   * @returns Un Observable renvoyant la réponse du serveur
+   */
   createAccount(username: string, password: string): Observable<any> {
-    /*
-    return from(Promise.resolve("Account created"))
-      .pipe(
-        catchError((err: HttpErrorResponse) => {
-          switch (err.status) {
-            default:
-              return throwError(() => new Error("Une erreur inconnue est survenue, code : " + err.status))
-          }
-        })
-      )
-      */
     return this.http.post<string>('/api/user', { username, password })
       .pipe(
         catchError((err: HttpErrorResponse) => {
@@ -77,6 +59,10 @@ export class AuthService {
       )
   }
 
+  /**
+   * Vérifie si l'utilisateur est authentifié.
+   * @returns `true` si un token est présent, `false` sinon
+   */
   isAuthenticated(): boolean {
     const token = this.getToken();
     if (!token) return false;
@@ -84,10 +70,18 @@ export class AuthService {
     return true;
   }
 
+  /**
+   * Renvoie un Observable contenant les informations de l'utilisateur ou `null` s'il n'est pas connecté.
+   * @returns Un Observable contenant les informations de l'utilisateur ou `null`
+   */
   getUser(): Observable<User | null> {
     return this.currentUser$.asObservable();
   }
 
+  /**
+   * Récupère le jeton JWT actuellement stocké.
+   * @returns Le jeton JWT ou `null` s'il n'est pas défini
+   */
   getToken(): string | null {
     return this.currentToken$.getValue();
   }

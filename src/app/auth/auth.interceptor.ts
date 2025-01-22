@@ -7,6 +7,10 @@ import { AuthService } from "./auth.service";
 export class AuthInterceptor implements HttpInterceptor {
   constructor(private authService: AuthService) { }
 
+  /**
+   * Méthode d'interception des requêtes HTTP.
+   * Ajoute un en-tête `Authorization` avec le jeton JWT si celui-ci existe.
+   */
   intercept(
     req: HttpRequest<any>,
     next: HttpHandler
