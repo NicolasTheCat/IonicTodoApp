@@ -19,6 +19,7 @@ import { CalendarPageModule } from './calendar/calendar.module';
     FormsModule,
     TodoListModule,
     CalendarPageModule,
+    FormsModule
   ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],

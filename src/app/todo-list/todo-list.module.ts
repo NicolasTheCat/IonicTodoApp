@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonAccordion, IonicModule } from '@ionic/angular';
 import { TodoListComponent } from './todo-list.component';
 import { TodoListRoutingModule } from './todo-list-routing.module';
 
@@ -13,7 +13,8 @@ import { TodoListRoutingModule } from './todo-list-routing.module';
     CommonModule,
     FormsModule,
     IonicModule,
-    TodoListRoutingModule
+    TodoListRoutingModule,
+    FormsModule
   ]
 })
 export class TodoListModule { }

@@ -1,39 +1,63 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import { IonAccordion, IonModal } from '@ionic/angular';
+import { TaskService } from '../task/task.service';
+import { Task } from '../task/task.type';
 
 @Component({
   selector: 'app-todo-list',
   templateUrl: './todo-list.component.html',
-  styleUrls: ['./todo-list.component.scss'],
+  styleUrls: ['./todo-list.component.scss']
 })
-export class TodoListComponent {
+export class TodoListComponent implements OnInit {
 
-  tasks: { name: string, status: boolean }[] = [];
-  newTask: string = '';
+  @ViewChild(IonModal) modal!: IonModal;
+
+  tasks: Task[] = [];
+
+  taskInput: string = '';
+  descInput: string = '';
+  scoreInput: number = 0;
+  hasDateInput: boolean = false;
+  dateInput: string = '';
   sort: TaskSort = TaskSort.NONE;
+
   _sortEnum = TaskSort;
 
-  constructor() { }
+  constructor(private taskService: TaskService) { }
+
+  ngOnInit(): void {
+    this.tasks = this.taskService.getTasks();
+  }
 
   getTasks() {
+    this.tasks = this.taskService.getTasks();
     switch (this.sort) {
-      case TaskSort.COMPLETED: return this.tasks.filter(e => e.status === true);
-      case TaskSort.UNCOMPLETED: return this.tasks.filter(e => e.status === false);
-      default: return this.tasks
+      case TaskSort.COMPLETED: return this.tasks.filter(e => e.done === true);
+      case TaskSort.UNCOMPLETED: return this.tasks.filter(e => e.done === false);
+      default: return this.tasks;
     }
   }
 
-  addTask() {
-    if (this.newTask.length > 0) {
-      this.tasks.push({
-        name: this.newTask.trim(),
-        status: false
-      });
-      this.newTask = '';
-    }
+  modalCancel() {
+    this.modal.dismiss(null, 'cancel');
   }
 
-  removeTask(index: number) {
-    this.tasks.splice(index, 1);
+  modalConfirm() {
+    this.taskService.createTask({
+      title: this.taskInput,
+      score: this.scoreInput,
+      description: this.descInput,
+      date: this.hasDateInput ? this.dateInput.split("T")[0] : undefined,
+      done: false
+    })
+
+    console.log(this.taskService.getTasks());
+
+    this.modal.dismiss(this.taskInput, 'confirm');
+  }
+
+  removeTask(id: number) {
+    this.taskService.deleteTask(id)
   }
 
 }
