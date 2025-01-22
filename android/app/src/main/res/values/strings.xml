@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">todoApplication</string>
+    <string name="title_activity_main">todoApplication</string>
+    <string name="package_name">com.nbaudry.todoApp</string>
+    <string name="custom_url_scheme">com.nbaudry.todoApp</string>
+</resources>

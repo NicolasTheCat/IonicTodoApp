@@ -2,18 +2,19 @@ import { Injectable } from "@angular/core";
 import { BehaviorSubject, catchError, from, map, Observable, throwError } from "rxjs";
 import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { jwtDecode } from "jwt-decode";
+import { User } from "../user/user.type";
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private currentToken$ = new BehaviorSubject<string | null>(null);
-  private currentUser$ = new BehaviorSubject<any | null>(null);
+  private currentUser$ = new BehaviorSubject<User | null>(null);
 
   constructor(private http: HttpClient) { }
 
   login(username: string, password: string): Observable<string> {
-    /*
+
     return from(Promise.resolve("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUEiLCJuYW1lIjoiTmljb2xhc1RoZUNhdCJ9.MR6HR-3Lne8K28oZ1zGZgqoyDtcIFl_3kvFI-E9dnQw"))
       .pipe(
         map(response => {
@@ -33,7 +34,6 @@ export class AuthService {
           }
         })
       )
-      */
     return this.http.post<string>('/api/login', { username, password })
       .pipe(
         map(response => {
@@ -84,7 +84,7 @@ export class AuthService {
     return true;
   }
 
-  getUser(): Observable<any | null> {
+  getUser(): Observable<User | null> {
     return this.currentUser$.asObservable();
   }
 

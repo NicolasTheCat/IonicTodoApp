@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1048097148348",
+    "project_id": "todoionicapp-1d617",
+    "storage_bucket": "todoionicapp-1d617.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1048097148348:android:3981fda2680b0e0e482fb9",
+        "android_client_info": {
+          "package_name": "com.nbaudry.todoApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4lXA6WQJS1TqsVJopZLK2c8dC5Fo-YaY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
