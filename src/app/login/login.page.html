@@ -3,11 +3,16 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>login</ion-title>
+    <ion-title>Connexion</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
+  @if (errMsg) {
+    <ion-item>
+      <ion-label class="error">{{errMsg}}</ion-label>
+    </ion-item>
+  }
   <form #loginForm="ngForm" (ngSubmit)="onLogin()" class="ion-padding">
     <ion-item>
       <ion-label position="floating">Nom d'utilisateur</ion-label>
@@ -45,4 +50,10 @@
       S'inscrire
     </ion-button>
   </form>
+  <ion-toast
+    [isOpen]="isAccCreated"
+    message="Compte créé!"
+    [duration]="5000"
+    (didDismiss)="isAccCreated = false"
+  ></ion-toast>
 </ion-content>

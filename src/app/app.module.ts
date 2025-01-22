@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { TodoListModule } from './todo-list/todo-list.module';
 import { CalendarPageModule } from './calendar/calendar.module';
 import { IonicStorageModule } from '@ionic/storage-angular';
+import { provideHttpClient } from '@angular/common/http';
 
 @NgModule({
   declarations: [AppComponent],
@@ -23,7 +24,7 @@ import { IonicStorageModule } from '@ionic/storage-angular';
     CalendarPageModule,
     FormsModule
   ],
-  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
+  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }, provideHttpClient()],
   bootstrap: [AppComponent],
 })
 export class AppModule { }

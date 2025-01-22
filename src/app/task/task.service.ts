@@ -3,6 +3,7 @@ import { TaskCreateDTO, TaskUpdateDTO } from './task.dto';
 import { Task } from './task.type';
 import { StorageService } from '../storage.service';
 import { v4 as uuidv4 } from 'uuid';
+import { ApiService } from '../api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,10 @@ export class TaskService {
   _syncQueue: { action: 'NEW' | 'UPDATE' | 'DELETE', task: Task | string }[] = [];
   _syncTimerRef: number | null = null;
 
-  constructor(private storageService: StorageService) { }
+  constructor(
+    private storageService: StorageService,
+    private apiService: ApiService
+  ) { }
 
   async createTask(taskCreateDTO: TaskCreateDTO): Promise<Task> {
     const newTask: Task = {
@@ -82,21 +86,30 @@ export class TaskService {
 
   private attemptToSync() {
     if (navigator.onLine) {
-      for (const update of this._syncQueue) {
+      for (const [i, update] of this._syncQueue.entries()) {
         switch (update.action) {
           case 'NEW':
             console.log(update)
-            //POST THEN REMOVE FROM QUEUE
+            this.apiService.post('task', update.task).subscribe(e => {
+              this._syncQueue = this._syncQueue.slice(0, i).concat(this._syncQueue.slice(i + 1));
+            });
             break;
 
           case 'UPDATE':
             console.log(update)
-            //PATCH THEN REMOVE FROM QUEUE
+            this.apiService.put(`task`, update.task).subscribe(e => {
+              this._syncQueue = this._syncQueue.slice(0, i).concat(this._syncQueue.slice(i + 1));
+            });
             break;
 
           case 'DELETE':
             console.log(update)
-            //DELETE THEN REMOVE FROM QUEUE
+            if (typeof update.task != 'string') {
+              throw new Error('Tried to delete a task, but supplied something other than an uuid')
+            }
+            this.apiService.delete(`task/${update.task}`).subscribe(e => {
+              this._syncQueue = this._syncQueue.slice(0, i).concat(this._syncQueue.slice(i + 1));
+            });
             break;
         }
       }
