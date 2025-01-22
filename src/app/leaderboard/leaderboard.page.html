@@ -1,0 +1,26 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>leaderboard</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-list>
+    <ion-list-header>
+      <ion-select label="Ranger par :" [(ngModel)]="sort">
+        <ion-select-option [value]="_sortEnum.SCORE">Score</ion-select-option>
+        <ion-select-option [value]="_sortEnum.NAME">Nom</ion-select-option>
+      </ion-select>
+    </ion-list-header>
+    <ion-item *ngFor="let friend of getFriends(); let i = index">
+      <ion-label>
+        <h2>{{ i + 1 }}. {{ friend.name }}</h2>
+        <p><i>{{ friend.uuid }}</i></p>
+      </ion-label>
+      <ion-badge slot="end" color="primary">{{ friend.score }}</ion-badge>
+    </ion-item>
+  </ion-list>
+</ion-content>

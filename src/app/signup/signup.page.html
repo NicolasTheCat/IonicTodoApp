@@ -1,0 +1,48 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>signup</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <form #signUpForm="ngForm" (ngSubmit)="onSubmit()" class="ion-padding">
+    <ion-item>
+      <ion-label position="floating">Nom d'utilisateur</ion-label>
+      <ion-input
+        type="text"
+        required
+        [(ngModel)]="username"
+        name="username"
+        #usernameInput="ngModel">
+      </ion-input>
+    </ion-item>
+    <div *ngIf="usernameInput.invalid && usernameInput.touched" class="error">
+      Le nom d'utilisateur est requis.
+    </div>
+
+    <ion-item>
+      <ion-label position="floating">Mot de passe</ion-label>
+      <ion-input
+        type="password"
+        required
+        [(ngModel)]="password"
+        name="password"
+        #passwordInput="ngModel">
+      </ion-input>
+    </ion-item>
+    <div *ngIf="passwordInput.invalid && passwordInput.touched" class="error">
+      Le mot de passe est requis.
+    </div>
+
+    <ion-button expand="block" type="submit" [disabled]="signUpForm.invalid">
+      Inscription
+    </ion-button>
+
+    <ion-button expand="block" fill="outline" routerLink="/signup">
+      Connexion
+    </ion-button>
+  </form>
+</ion-content>
