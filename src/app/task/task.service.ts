@@ -1,52 +1,107 @@
 import { Injectable } from '@angular/core';
 import { TaskCreateDTO, TaskUpdateDTO } from './task.dto';
 import { Task } from './task.type';
+import { StorageService } from '../storage.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TaskService {
 
-  //TODO : Replace with data from a server
-  private DUMMY_TASK: Task[] = [
-    { id: 1, title: 'Task 1', description: 'Description 1', date: '2025-01-01', score: 10, done: false },
-    { id: 2, title: 'Task 2', description: 'Description 2', date: '2025-01-02', score: 20, done: true },
-    { id: 3, title: 'Task 3', score: 15, done: false },
-  ];
+  _syncQueue: { action: 'NEW' | 'UPDATE' | 'DELETE', task: Task | string }[] = [];
+  _syncTimerRef: number | null = null;
 
-  constructor() { }
+  constructor(private storageService: StorageService) { }
 
-  createTask(taskCreateDTO: TaskCreateDTO): Task {
+  async createTask(taskCreateDTO: TaskCreateDTO): Promise<Task> {
     const newTask: Task = {
-      id: this.DUMMY_TASK.length > 0 ? Math.max(...this.DUMMY_TASK.map(t => t.id)) + 1 : 1,
+      uuid: uuidv4(),
       ...taskCreateDTO,
     };
-    this.DUMMY_TASK.push(newTask);
+
+    const tasks = await this.getTasks();
+
+    this.storageService.set("TASKS", [...tasks, newTask]);
+
+    this._syncQueue.push({ action: 'NEW', task: newTask });
+
+    this.attemptToSync();
+
     return newTask;
   }
 
-  getTasks(): Task[] {
-    return [...this.DUMMY_TASK];
+  async getTasks(): Promise<Task[]> {
+    let tasks = await this.storageService.get<Task[]>("TASKS");
+    if (tasks) return tasks;
+    return [];
   }
 
-  getTaskById(id: number): Task | undefined {
-    return this.DUMMY_TASK.find(task => task.id === id);
+  async getTaskById(uuid: string): Promise<Task | undefined> {
+    const tasks = await this.getTasks();
+    return tasks.find(e => e.uuid === uuid);
   }
 
-  updateTask(taskUpdateDTO: TaskUpdateDTO): Task {
-    const index = this.DUMMY_TASK.findIndex(task => task.id === taskUpdateDTO.id);
-    if (index !== -1) {
-      this.DUMMY_TASK[index] = { ...this.DUMMY_TASK[index], ...taskUpdateDTO };
-      return this.DUMMY_TASK[index];
-    } else {
-      throw new Error("Cannot find task to update");
+  async updateTask(taskUpdateDTO: TaskUpdateDTO): Promise<Task> {
+    let tasks = await this.getTasks();
+    let taskIndex = tasks.findIndex(e => e.uuid == taskUpdateDTO.uuid);
+
+    if (!taskIndex) {
+      throw new Error('Provided task does not exist')
     }
+
+    tasks[taskIndex] = { ...tasks[taskIndex], ...taskUpdateDTO };
+
+    this.storageService.set("TASKS", tasks);
+
+    this._syncQueue.push({ action: 'UPDATE', task: taskUpdateDTO });
+
+    this.attemptToSync();
+
+    return tasks[taskIndex];
   }
 
+  async deleteTask(uuid: string): Promise<boolean> {
+    let tasks = await this.getTasks();
+    let taskIndex = tasks.findIndex(e => e.uuid == uuid);
 
-  deleteTask(id: number): boolean {
-    const initialLength = this.DUMMY_TASK.length;
-    this.DUMMY_TASK = this.DUMMY_TASK.filter(task => task.id !== id);
-    return this.DUMMY_TASK.length < initialLength;
+    if (taskIndex < 0) {
+      throw new Error('Provided task does not exist')
+    }
+
+    tasks = [...tasks.slice(0, taskIndex), ...tasks.slice(taskIndex + 1)]
+
+    this.storageService.set("TASKS", tasks);
+
+    this._syncQueue.push({ action: 'DELETE', task: uuid })
+
+    this.attemptToSync();
+
+    return true;
+  }
+
+  private attemptToSync() {
+    if (navigator.onLine) {
+      for (const update of this._syncQueue) {
+        switch (update.action) {
+          case 'NEW':
+            console.log(update)
+            //POST THEN REMOVE FROM QUEUE
+            break;
+
+          case 'UPDATE':
+            console.log(update)
+            //PATCH THEN REMOVE FROM QUEUE
+            break;
+
+          case 'DELETE':
+            console.log(update)
+            //DELETE THEN REMOVE FROM QUEUE
+            break;
+        }
+      }
+    } else if (this._syncTimerRef != null) {
+      this._syncTimerRef = (setInterval(this.attemptToSync, 10000) as unknown) as number;
+    }
   }
 }

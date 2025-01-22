@@ -1,5 +1,5 @@
 export interface Task {
-    id: number;
+    uuid: string;
     title: string;
     description?: string;
     date?: string;

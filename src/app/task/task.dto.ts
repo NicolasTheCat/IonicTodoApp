@@ -7,5 +7,5 @@ export interface TaskCreateDTO {
 }
 
 export interface TaskUpdateDTO extends TaskCreateDTO {
-    id: number;
+    uuid: string;
 }

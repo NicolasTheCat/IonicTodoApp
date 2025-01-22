@@ -26,11 +26,11 @@ export class TodoListComponent implements OnInit {
   constructor(private taskService: TaskService) { }
 
   ngOnInit(): void {
-    this.tasks = this.taskService.getTasks();
+    this.taskService.getTasks().then(e => this.tasks = e);
   }
 
-  getTasks() {
-    this.tasks = this.taskService.getTasks();
+  async getTasks() {
+    this.tasks = await this.taskService.getTasks();
     switch (this.sort) {
       case TaskSort.COMPLETED: return this.tasks.filter(e => e.done === true);
       case TaskSort.UNCOMPLETED: return this.tasks.filter(e => e.done === false);
@@ -42,8 +42,8 @@ export class TodoListComponent implements OnInit {
     this.modal.dismiss(null, 'cancel');
   }
 
-  modalConfirm() {
-    this.taskService.createTask({
+  async modalConfirm() {
+    await this.taskService.createTask({
       title: this.taskInput,
       score: this.scoreInput,
       description: this.descInput,
@@ -51,13 +51,14 @@ export class TodoListComponent implements OnInit {
       done: false
     })
 
-    console.log(this.taskService.getTasks());
+    this.getTasks();
 
     this.modal.dismiss(this.taskInput, 'confirm');
   }
 
-  removeTask(id: number) {
-    this.taskService.deleteTask(id)
+  async removeTask(id: string) {
+    await this.taskService.deleteTask(id);
+    this.getTasks();
   }
 
 }
