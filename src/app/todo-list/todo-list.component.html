@@ -1,0 +1,30 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Todo List</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-item>
+    <ion-input [(ngModel)]="newTask" placeholder="Ajouter une tâche"></ion-input>
+    <ion-button (click)="addTask()">Ajouter</ion-button>
+  </ion-item>
+
+
+  <ion-list>
+    <ion-item>
+      <ion-select label="Tri :" [(ngModel)]="sort">
+        <ion-select-option [value]="_sortEnum.NONE">Aucun</ion-select-option>
+        <ion-select-option [value]="_sortEnum.UNCOMPLETED">Tâches à faire</ion-select-option>
+        <ion-select-option [value]="_sortEnum.COMPLETED">Tâches effectuées</ion-select-option>
+      </ion-select>
+    </ion-item>
+    <ion-item *ngFor="let task of getTasks(); let i = index">
+      <ion-label>{{ task.name }}</ion-label>
+      <ion-checkbox [(ngModel)]="task.status" justify="end"></ion-checkbox>
+      <ion-button color="danger" (click)="removeTask(i)">
+        <ion-icon slot="icon-only" name="trash"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+</ion-content>
