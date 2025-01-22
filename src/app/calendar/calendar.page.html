@@ -1,0 +1,61 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Calendar</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-datetime
+    locale="en-EN"
+    [highlightedDates]="getHighlightedDates()"
+    (ionChange)="onDateChange($event)"
+    [value]="selectedDate"
+    presentation="date"
+    first-day-of-week="1"
+  ></ion-datetime>
+
+  <ion-list>
+    <ion-item *ngFor="let task of selectedTasks">
+      <ion-label>
+        <h2>{{ task.title }}</h2>
+        <p *ngIf="task.description">{{ task.description }}</p>
+        <p>Score: {{ task.score }}</p>
+      </ion-label>
+      <ion-checkbox slot="end" [(ngModel)]="task.done" (ionChange)="toggleChecked(task.id)"></ion-checkbox>
+    </ion-item>
+  </ion-list>
+</ion-content>
+
+<!--
+<ion-content class="ion-padding">
+  <ion-grid>
+    <ion-row class="ion-justify-content-between">
+      <ion-col size="2">
+        <ion-button (click)="changeMonth(-1)" expand="block" fill="outline">
+          &lt;
+        </ion-button>
+      </ion-col>
+      <ion-col size="8" class="ion-text-center">
+        <h2>{{ selectedMonthName }} {{ selectedYear }}</h2>
+      </ion-col>
+      <ion-col size="2">
+        <ion-button (click)="changeMonth(1)" expand="block" fill="outline">
+          &gt;
+        </ion-button>
+      </ion-col>
+    </ion-row>
+
+    <ion-row class="week-header">
+      <ion-col *ngFor="let day of weekDays" class="day-header">
+        {{ day }}
+      </ion-col>
+    </ion-row>
+
+    <ion-row *ngFor="let week of calendar">
+      <ion-col *ngFor="let day of week" class="day-cell" [ngClass]="{'inactive': !day.currentMonth}">
+        {{ day.date }}
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>
+-->
