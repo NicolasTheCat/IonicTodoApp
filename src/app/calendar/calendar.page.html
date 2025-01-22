@@ -24,7 +24,7 @@
         <p *ngIf="task.description">{{ task.description }}</p>
         <p>Score: {{ task.score }}</p>
       </ion-label>
-      <ion-checkbox slot="end" [(ngModel)]="task.done" (ionChange)="toggleChecked(task.id)"></ion-checkbox>
+      <ion-checkbox slot="end" [(ngModel)]="task.done" (ionChange)="toggleChecked(task.uuid)"></ion-checkbox>
     </ion-item>
   </ion-list>
 </ion-content>

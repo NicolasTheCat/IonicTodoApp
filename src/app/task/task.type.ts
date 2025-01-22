@@ -5,4 +5,6 @@ export interface Task {
     date?: string;
     score: number;
     done: boolean;
+    _textColor?: string;
+    _bgColor?: string;
 }

@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { Task } from '../task/task.type';
+import { TaskService } from '../task/task.service';
 
 @Component({
   selector: 'app-calendar',
@@ -7,32 +9,26 @@ import { Component, OnInit } from '@angular/core';
 })
 export class CalendarPage implements OnInit {
 
-  tasks: any[] = [
-    {
-      id: 1,
-      date: "2025-01-15",
-      description: "Test",
-      title: "Tâche test",
-      score: 5,
-      done: false
-    }
-  ];
+  tasks: Task[] = [];
 
   selectedDate: string = new Date().toISOString().split('T')[0];
   selectedTasks = this.tasks.filter(e => e.date == this.selectedDate);
 
-  constructor() { }
+  constructor(private taskService: TaskService) { }
 
   ngOnInit(): void {
     //Subscribe to task observable from service
+    this.taskService.getTasks().subscribe(tasks => {
+      this.tasks = tasks;
+    })
   }
 
   getHighlightedDates(): any[] {
     return this.tasks.map(e =>
     ({
-      date: e.date.split('T')[0],
-      textColor: e._textColor || "#09721b",
-      backgroundColor: e._bgColor || "#c8e5d0"
+      date: e.date?.split('T')[0],
+      textColor: e._textColor ?? "#09721b",
+      backgroundColor: e._bgColor ?? "#c8e5d0"
     }));
   }
 
@@ -41,8 +37,16 @@ export class CalendarPage implements OnInit {
     this.selectedTasks = this.tasks.filter(e => e.date == this.selectedDate);
   }
 
-  toggleChecked(id: number) {
+  toggleChecked(id: string) {
     console.log(`checking task id ${id}`)
-    //Call task service and toggle it
+
+    this.taskService.getTaskById(id).subscribe(task => {
+      if (task) {
+        this.taskService.updateTask({
+          ...task,
+          done: !(task.done)
+        }).subscribe();
+      }
+    })
   }
 }

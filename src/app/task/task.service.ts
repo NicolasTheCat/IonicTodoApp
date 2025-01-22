@@ -4,88 +4,125 @@ import { Task } from './task.type';
 import { StorageService } from '../storage.service';
 import { v4 as uuidv4 } from 'uuid';
 import { ApiService } from '../api.service';
+import { catchError, from, map, Observable, of, switchMap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TaskService {
 
-  _syncQueue: { action: 'NEW' | 'UPDATE' | 'DELETE', task: Task | string }[] = [];
-  _syncTimerRef: number | null = null;
+  private _syncQueue: { action: 'NEW' | 'UPDATE' | 'DELETE', task: Task | string }[] = [];
+  private _syncTimerRef: number | null = null;
 
   constructor(
     private storageService: StorageService,
     private apiService: ApiService
   ) { }
 
-  async createTask(taskCreateDTO: TaskCreateDTO): Promise<Task> {
+  createTask(taskCreateDTO: TaskCreateDTO): Observable<Task> {
     const newTask: Task = {
       uuid: uuidv4(),
       ...taskCreateDTO,
     };
 
-    const tasks = await this.getTasks();
-
-    this.storageService.set("TASKS", [...tasks, newTask]);
-
-    this._syncQueue.push({ action: 'NEW', task: newTask });
-
-    this.attemptToSync();
-
-    return newTask;
+    return this.getTasks().pipe(
+      map((tasks) => {
+        this.storageService.set('TASKS', [...tasks, newTask]);
+        this._syncQueue.push({ action: 'NEW', task: newTask });
+        this.attemptToSync();
+        return newTask;
+      })
+    );
   }
 
-  async getTasks(): Promise<Task[]> {
-    let tasks = await this.storageService.get<Task[]>("TASKS");
-    if (tasks) return tasks;
-    return [];
+  getTasks(): Observable<Task[]> {
+    return from(this.storageService.get<Task[]>('TASKS')).pipe(
+      switchMap((tasks) => {
+        if (tasks) {
+          return of(tasks);
+        } else {
+          return this.apiService.get<Task[]>('tasks').pipe(
+            map((apiTasks) => {
+              this.storageService.set('TASKS', apiTasks);
+              return apiTasks;
+            }),
+            catchError(() => of([]))
+          );
+        }
+      })
+    );
   }
 
-  async getTaskById(uuid: string): Promise<Task | undefined> {
-    const tasks = await this.getTasks();
-    return tasks.find(e => e.uuid === uuid);
+  getTaskById(uuid: string): Observable<Task | undefined> {
+    return this.getTasks().pipe(
+      map((tasks) => tasks.find((e) => e.uuid === uuid) || undefined),
+      switchMap((task) => {
+        if (task) {
+          return of(task);
+        } else {
+          return this.apiService.get<Task>(`tasks/${uuid}`).pipe(
+            switchMap((apiTask) =>
+              this.getTasks().pipe(
+                map((tasks) => {
+                  this.storageService.set('TASKS', [...tasks, apiTask]);
+                  return apiTask;
+                })
+              )
+            ),
+            catchError(() => of(undefined))
+          );
+        }
+      })
+    );
   }
 
-  async updateTask(taskUpdateDTO: TaskUpdateDTO): Promise<Task> {
-    let tasks = await this.getTasks();
-    let taskIndex = tasks.findIndex(e => e.uuid == taskUpdateDTO.uuid);
+  updateTask(taskUpdateDTO: TaskUpdateDTO): Observable<Task> {
+    return this.getTasks().pipe(
+      map((tasks) => {
+        const taskIndex = tasks.findIndex((e) => e.uuid === taskUpdateDTO.uuid);
 
-    if (!taskIndex) {
-      throw new Error('Provided task does not exist')
-    }
+        if (taskIndex < 0) {
+          throw new Error('Provided task does not exist');
+        }
 
-    tasks[taskIndex] = { ...tasks[taskIndex], ...taskUpdateDTO };
+        tasks[taskIndex] = { ...tasks[taskIndex], ...taskUpdateDTO };
+        this.storageService.set('TASKS', tasks);
 
-    this.storageService.set("TASKS", tasks);
+        this._syncQueue.push({ action: 'UPDATE', task: taskUpdateDTO });
+        this.attemptToSync();
 
-    this._syncQueue.push({ action: 'UPDATE', task: taskUpdateDTO });
-
-    this.attemptToSync();
-
-    return tasks[taskIndex];
+        return tasks[taskIndex];
+      })
+    );
   }
 
-  async deleteTask(uuid: string): Promise<boolean> {
-    let tasks = await this.getTasks();
-    let taskIndex = tasks.findIndex(e => e.uuid == uuid);
+  deleteTask(uuid: string): Observable<Task> {
+    return this.getTasks().pipe(
+      map((tasks) => {
+        const taskIndex = tasks.findIndex((e) => e.uuid === uuid);
+        const task = tasks[taskIndex]
 
-    if (taskIndex < 0) {
-      throw new Error('Provided task does not exist')
-    }
+        if (taskIndex < 0) {
+          throw new Error('Provided task does not exist');
+        }
 
-    tasks = [...tasks.slice(0, taskIndex), ...tasks.slice(taskIndex + 1)]
+        const updatedTasks = [...tasks.slice(0, taskIndex), ...tasks.slice(taskIndex + 1)];
+        this.storageService.set('TASKS', updatedTasks);
 
-    this.storageService.set("TASKS", tasks);
+        this._syncQueue.push({ action: 'DELETE', task: uuid });
+        this.attemptToSync();
 
-    this._syncQueue.push({ action: 'DELETE', task: uuid })
-
-    this.attemptToSync();
-
-    return true;
+        return task;
+      })
+    );
   }
 
   private attemptToSync() {
     if (navigator.onLine) {
+      if (this._syncTimerRef) {
+        clearInterval(this._syncTimerRef)
+      }
+
       for (const [i, update] of this._syncQueue.entries()) {
         switch (update.action) {
           case 'NEW':
