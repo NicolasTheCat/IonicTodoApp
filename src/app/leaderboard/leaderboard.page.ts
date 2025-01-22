@@ -19,12 +19,10 @@ export class LeaderboardPage implements ViewDidEnter {
   _sortEnum = FriendSort;
 
   ionViewDidEnter() {
-    console.log("WAAAAAAAAT")
-    console.log(this.authService.getToken())
     if (this.authService.getToken() == null) {
       this.router.navigate(['login'])
     } else {
-      this.friendList = this.userService.getFriends()
+      this.userService.getFriends().subscribe(e => this.friendList = e);
       this.userService.setupNotifications()
     }
   }

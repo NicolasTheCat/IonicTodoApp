@@ -79,6 +79,14 @@ export class AuthService {
   }
 
   /**
+   * Renvoie les informations de l'utilisateur ou `null` s'il n'est pas connecté.
+   * @returns Les informations de l'utilisateur ou `null`
+   */
+  getUserValue(): User | null {
+    return this.currentUser$.value;
+  }
+
+  /**
    * Récupère le jeton JWT actuellement stocké.
    * @returns Le jeton JWT ou `null` s'il n'est pas défini
    */

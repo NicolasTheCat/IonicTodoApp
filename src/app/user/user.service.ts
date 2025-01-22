@@ -3,24 +3,20 @@ import { User } from './user.type';
 import { v4 as uuidv4 } from 'uuid';
 import { AuthService } from '../auth/auth.service';
 import { Capacitor } from '@capacitor/core';
-import { PushNotifications } from '@capacitor/push-notifications';
+import { PushNotifications, Token } from '@capacitor/push-notifications';
 import { FCM } from '@capacitor-community/fcm';
+import { ApiService } from '../api.service';
+import { from, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService implements OnInit {
 
-  DUMMY_FRIEND_LIST: User[] = [
-    { uuid: "ff694e2e-4d5a-4221-b8e5-d74a8f03f8fe", name: 'Friend1', score: 10 },
-    { uuid: "1008cfa4-af5c-445d-bf30-9b303adc2303", name: 'Friend2', score: 20 },
-    { uuid: "04b99f94-cf86-4963-98c3-57a315da2442", name: 'Friend3', score: 30 },
-  ]
-
   friendList: User[] = [];
   public FCM = "";
 
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService, private apiService: ApiService) { }
 
   ngOnInit(): void {
     this.setupNotifications()
@@ -40,29 +36,40 @@ export class UserService implements OnInit {
     let hasPerms = await PushNotifications.checkPermissions();
     if (!hasPerms) {
       let request = await PushNotifications.requestPermissions();
-      if (request.receive = 'denied') {
-        return;
+      if (request.receive == "granted") {
+        this.subscribeToNotifications();
       }
+    } else {
+      this.subscribeToNotifications();
     }
 
+    PushNotifications.addListener('registration',
+      (token: Token) => {
+        console.log('Push registration success, token: ' + token.value)
+      }
+    );
+  }
+
+  subscribeToNotifications() {
     PushNotifications.register();
 
     FCM.subscribeTo({ topic: `testTopic` });
 
-    FCM.getToken().then(e => this.FCM = e.token)
+    FCM.getToken().then(e => {
+      this.FCM = e.token
+      console.log(e.token);
+    })
 
     this.authService.getUser().subscribe(e => {
       if (e) FCM.subscribeTo({ topic: e.uuid });
     })
-
   }
 
-  getFriends() {
-    if (!this.authService.getToken()) {
-      return [];
+  getFriends(): Observable<User[]> {
+    if (!this.authService.getToken() || !this.authService.getUserValue()) {
+      return from([]);
+    } else {
+      return this.apiService.get<User[]>(`user/friends/${this.authService.getUserValue()?.uuid}`)
     }
-
-    //add call to api
-    return this.DUMMY_FRIEND_LIST;
   }
 }
